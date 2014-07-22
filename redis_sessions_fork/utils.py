@@ -17,7 +17,7 @@ from . import settings
 
 def add_prefix(key):
     if settings.SESSION_REDIS_PREFIX:
-        if not settings.SESSION_REDIS_PREFIX in str(key):
+        if not str(key).startswith('%s:' % settings.SESSION_REDIS_PREFIX):
             return '%s:%s' % (
                 settings.SESSION_REDIS_PREFIX,
                 key
