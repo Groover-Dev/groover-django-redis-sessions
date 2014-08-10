@@ -3,16 +3,20 @@ django-redis-sessions-fork
 
 :info: Redis Session Backend For Django
 
-.. image:: https://api.travis-ci.org/hellysmile/django-redis-sessions-fork.png
+.. image:: https://travis-ci.org/hellysmile/django-redis-sessions-fork.svg?branch=master
     :target: https://travis-ci.org/hellysmile/django-redis-sessions-fork
+
 .. image:: https://coveralls.io/repos/hellysmile/django-redis-sessions-fork/badge.png?branch=master
     :target: https://coveralls.io/r/hellysmile/django-redis-sessions-fork?branch=master
-.. image:: https://pypip.in/d/django-redis-sessions-fork/badge.png
+
+.. image:: https://pypip.in/download/django-redis-sessions-fork/badge.svg?period=month
     :target: https://pypi.python.org/pypi/django-redis-sessions-fork
-.. image:: https://pypip.in/v/django-redis-sessions-fork/badge.png
+
+.. image:: https://pypip.in/version/django-redis-sessions-fork/badge.svg
     :target: https://pypi.python.org/pypi/django-redis-sessions-fork
-.. image:: https://d2weczhvl823v0.cloudfront.net/hellysmile/django-redis-sessions-fork/trend.png
-   :target: https://bitdeli.com/free
+
+.. image:: https://landscape.io/github/hellysmile/django-redis-sessions-fork/master/landscape.png
+   :target: https://landscape.io/github/hellysmile/django-redis-sessions-fork/master
 
 Features
 ********
