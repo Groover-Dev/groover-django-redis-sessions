@@ -19,7 +19,7 @@ class SessionStore(SessionBase):
     def load(self):
         session_data = backend.get(self.session_key)
 
-        if not session_data is None:
+        if session_data is not None:
             return self.decode(session_data)
         else:
             self.create()

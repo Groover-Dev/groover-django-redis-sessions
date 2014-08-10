@@ -1,42 +1,43 @@
 from django.contrib.sessions.backends.base import CreateError
 
-from . import utils, connection
+from .utils import force_unicode, prefix
+from . import connection
 
 
-@utils.prefix
+@prefix
 def expire(key):
     return connection.redis_server.ttl(key)
 
 
-@utils.prefix
+@prefix
 def keys(pattern):
     return connection.redis_server.keys(pattern)
 
 
-@utils.prefix
+@prefix
 def get(key):
     value = connection.redis_server.get(key)
 
-    value = utils.force_unicode(value)
+    value = force_unicode(value)
 
     return value
 
 
-@utils.prefix
+@prefix
 def exists(key):
     return connection.redis_server.exists(key)
 
 
-@utils.prefix
+@prefix
 def delete(key):
     return connection.redis_server.delete(key)
 
 
-@utils.prefix
+@prefix
 def save(key, expire, data, must_create):
     expire = int(expire)
 
-    data = utils.force_unicode(data)
+    data = force_unicode(data)
 
     if must_create:
         if connection.redis_server.setnx(key, data):

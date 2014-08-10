@@ -4,19 +4,19 @@ from . import settings, utils
 
 
 def get_redis_server():
-    if not settings.SESSION_REDIS_CONNECTION_POOL is None:
+    if settings.SESSION_REDIS_CONNECTION_POOL is not None:
         return redis.StrictRedis(
             connection_pool=utils.import_by_path(
                 settings.SESSION_REDIS_CONNECTION_POOL
             )
         )
 
-    if not settings.SESSION_REDIS_URL is None:
+    if settings.SESSION_REDIS_URL is not None:
         return redis.StrictRedis.from_url(
             settings.SESSION_REDIS_URL
         )
 
-    if not settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH is None:
+    if settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH is not None:
         return redis.StrictRedis(
             unix_socket_path=settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH,
             db=settings.SESSION_REDIS_DB,

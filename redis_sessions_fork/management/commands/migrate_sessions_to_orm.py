@@ -24,7 +24,7 @@ class Command(NoArgsCommand):
 
             session_data = backend.get(session_key)
 
-            if not session_data is None:
+            if session_data is not None:
                 try:
                     SessionStore().decode(session_data)
                 except (Error, TypeError):

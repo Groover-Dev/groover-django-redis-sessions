@@ -15,7 +15,7 @@ class Command(NoArgsCommand):
         for session_key in session_keys:
             session_data = backend.get(session_key)
 
-            if not session_data is None:
+            if session_data is not None:
                 try:
                     SessionStore().decode(session_data)
                     backend.delete(session_key)
