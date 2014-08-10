@@ -12,7 +12,7 @@ except ImportError:  # Django < 1.4
     timezone = datetime
 from django.utils.importlib import import_module
 
-from . import settings
+from .conf import settings
 
 
 def add_prefix(key):

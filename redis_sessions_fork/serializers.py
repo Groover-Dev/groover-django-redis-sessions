@@ -1,4 +1,4 @@
-from . import settings
+from .conf import settings
 
 try:
     import ujson

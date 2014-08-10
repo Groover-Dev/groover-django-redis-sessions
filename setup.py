@@ -12,7 +12,8 @@ packages = [
 
 install_requires = [
     'redis>=2.4.10',
-    'django>=1.3'
+    'django>=1.3',
+    'django_appconf>=0.6'
 ]
 
 

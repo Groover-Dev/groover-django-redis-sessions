@@ -1,12 +1,13 @@
 import redis
 
-from . import settings, utils
+from .utils import import_by_path
+from .conf import settings
 
 
 def get_redis_server():
     if settings.SESSION_REDIS_CONNECTION_POOL is not None:
         return redis.StrictRedis(
-            connection_pool=utils.import_by_path(
+            connection_pool=import_by_path(
                 settings.SESSION_REDIS_CONNECTION_POOL
             )
         )

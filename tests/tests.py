@@ -1,34 +1,69 @@
 # -*- coding: utf-8 -*-.
 import os
 import time
-from imp import reload
 
-from django.conf import settings as django_settings
+import redis
 from django.contrib.sessions.backends.base import CreateError
 from django.core import management
 from django.contrib.sessions.models import Session
 
-from redis_sessions_fork import settings as session_settings
-from redis_sessions_fork import connection, utils, backend
+from redis_sessions_fork.conf import settings, SessionRedisConf
+from redis_sessions_fork import utils, backend
+from redis_sessions_fork.connection import get_redis_server
 
-
-session_module = utils.import_module(django_settings.SESSION_ENGINE)
+session_module = utils.import_module(settings.SESSION_ENGINE)
 session = session_module.SessionStore()
+
+test_connection_pool = redis.ConnectionPool(
+    host=settings.SESSION_REDIS_HOST,
+    port=settings.SESSION_REDIS_PORT,
+    db=settings.SESSION_REDIS_DB,
+    password=settings.SESSION_REDIS_PASSWORD
+)
 
 
 management.call_command('syncdb', interactive=False)
 
 
+class SettingsMock(object):
+    def __init__(self, **kwargs):
+        self.initial = {}
+        self.mock = {}
+
+        for key, value in kwargs.items():
+            self.initial[key] = getattr(settings, key)
+            self.mock[key] = value
+
+    def __enter__(self):
+        for key, value in self.mock.items():
+            setattr(settings, key, value)
+
+    def __exit__(self, *args, **kwargs):
+        for key, value in self.initial.items():
+            setattr(settings, key, value)
+
+
+def test_settings_mock():
+    assert settings.SESSION_REDIS_PREFIX == 'django_sessions_tests'
+
+    with SettingsMock(SESSION_REDIS_PREFIX='mock'):
+        settings.SESSION_REDIS_PREFIX == 'mock'
+
+    assert settings.SESSION_REDIS_PREFIX == 'django_sessions_tests'
+
+
 def test_redis_prefix():
-    assert utils.add_prefix('foo') == \
-        '%s:foo' % django_settings.SESSION_REDIS_PREFIX
+    assert utils.add_prefix('foo') == '%s:foo' % settings.SESSION_REDIS_PREFIX
 
     assert 'foo' == utils.remove_prefix(utils.add_prefix('foo'))
 
-    session_settings.SESSION_REDIS_PREFIX = ''
+    with SettingsMock(SESSION_REDIS_PREFIX=''):
+        assert utils.add_prefix('foo') == 'foo'
+        assert 'foo' == utils.remove_prefix(utils.add_prefix('foo'))
 
-    assert utils.add_prefix('foo') == 'foo'
-    assert 'foo' == utils.remove_prefix(utils.add_prefix('foo'))
+    with SettingsMock(SESSION_REDIS_PREFIX='mock'):
+        assert utils.add_prefix('foo') == 'mock:foo'
+        assert 'foo' == utils.remove_prefix(utils.add_prefix('foo'))
 
 
 def test_modify_and_keys():
@@ -117,22 +152,37 @@ def test_save_existing_key():
         pass
 
 
+def test_redis_url_config_from_env():
+    os.environ['MYREDIS_URL'] = 'redis://localhost:6379/2'
+
+    _mock_session = SessionRedisConf()
+    _mock_session.configure()
+
+    with SettingsMock(SESSION_REDIS_URL=_mock_session.configured_data['URL']):
+        redis_server = get_redis_server()
+
+        host = redis_server.connection_pool.connection_kwargs.get('host')
+        port = redis_server.connection_pool.connection_kwargs.get('port')
+        db = redis_server.connection_pool.connection_kwargs.get('db')
+
+        assert host == 'localhost'
+        assert port == 6379
+        assert db == 2
+
+
 def test_redis_url_config():
-    reload(session_settings)
+    with SettingsMock(
+        SESSION_REDIS_URL='redis://localhost:6379/1'
+    ):
+        redis_server = get_redis_server()
 
-    session_settings.SESSION_REDIS_URL = 'redis://localhost:6379/0'
+        host = redis_server.connection_pool.connection_kwargs.get('host')
+        port = redis_server.connection_pool.connection_kwargs.get('port')
+        db = redis_server.connection_pool.connection_kwargs.get('db')
 
-    reload(connection)
-
-    redis_server = connection.redis_server
-
-    host = redis_server.connection_pool.connection_kwargs.get('host')
-    port = redis_server.connection_pool.connection_kwargs.get('port')
-    db = redis_server.connection_pool.connection_kwargs.get('db')
-
-    assert host == 'localhost'
-    assert port == 6379
-    assert db == 0
+        assert host == 'localhost'
+        assert port == 6379
+        assert db == 1
 
 
 def test_unix_socket():
@@ -140,61 +190,26 @@ def test_unix_socket():
     #
     # unixsocket /tmp/redis.sock
     # unixsocketperm 755
-    reload(session_settings)
+    with SettingsMock(
+        SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH='unix:///tmp/redis.sock'
+    ):
+        redis_server = get_redis_server()
 
-    session_settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH = \
-        'unix:///tmp/redis.sock'
+        path = redis_server.connection_pool.connection_kwargs.get('path')
+        db = redis_server.connection_pool.connection_kwargs.get('db')
 
-    reload(connection)
+        assert path == settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH
 
-    redis_server = connection.redis_server
-
-    path = redis_server.connection_pool.connection_kwargs.get('path')
-    db = redis_server.connection_pool.connection_kwargs.get('db')
-
-    assert path == session_settings.SESSION_REDIS_UNIX_DOMAIN_SOCKET_PATH
-
-    assert db == 0
-
-
-test_connection_pool = connection.redis.ConnectionPool(
-    host=session_settings.SESSION_REDIS_HOST,
-    port=session_settings.SESSION_REDIS_PORT,
-    db=session_settings.SESSION_REDIS_DB,
-    password=session_settings.SESSION_REDIS_PASSWORD
-)
+        assert db == 0
 
 
 def test_with_connection_pool_config():
-    reload(session_settings)
+    with SettingsMock(
+        SESSION_REDIS_CONNECTION_POOL='tests.tests.test_connection_pool'
+    ):
+        redis_server = get_redis_server()
 
-    session_settings.SESSION_REDIS_CONNECTION_POOL = \
-        'tests.tests.test_connection_pool'
-
-    reload(connection)
-
-    redis_server = connection.redis_server
-
-    assert redis_server.connection_pool == test_connection_pool
-
-
-def test_redis_url_config_from_env():
-    reload(session_settings)
-
-    os.environ['MYREDIS_URL'] = 'redis://localhost:6379/0'
-
-    reload(session_settings)
-    reload(connection)
-
-    redis_server = connection.redis_server
-
-    host = redis_server.connection_pool.connection_kwargs.get('host')
-    port = redis_server.connection_pool.connection_kwargs.get('port')
-    db = redis_server.connection_pool.connection_kwargs.get('db')
-
-    assert host == 'localhost'
-    assert port == 6379
-    assert db == 0
+        assert redis_server.connection_pool == test_connection_pool
 
 
 def test_serializers():
