@@ -200,9 +200,7 @@ def test_redis_url_config_from_env():
 def test_serializers():
     test_object = {'foo': 'bar'}
 
-    for class_name in (
-        'UjsonSerializer',
-    ):
+    for class_name in ('UjsonSerializer',):
         try:
             serializer = utils.import_by_path(
                 'redis_sessions_fork.serializers.%s' % class_name

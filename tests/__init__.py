@@ -16,3 +16,11 @@ settings.configure(
         }
     }
 )
+
+
+try:
+    # django 1.7 standalone app setup
+    import django
+    django.setup()
+except AttributeError:
+    pass
