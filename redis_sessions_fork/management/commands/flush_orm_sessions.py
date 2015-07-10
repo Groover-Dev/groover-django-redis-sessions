@@ -14,11 +14,13 @@ class Command(NoArgsCommand):
             cursor.execute(
                 'TRUNCATE TABLE %s' % Session._meta.db_table
             )
-            transaction.commit_unless_managed()
+            if hasattr(transaction, 'commit_unless_managed'):
+                transaction.commit_unless_managed()
         except DatabaseError:  # sqlite fix
             cursor.execute(
                 'DELETE FROM %s' % Session._meta.db_table
             )
-            transaction.commit_unless_managed()
+            if hasattr(transaction, 'commit_unless_managed'):
+                transaction.commit_unless_managed()
         except DatabaseError:  # otherwise via django orm
             Session.objects.all.delete()

@@ -22,11 +22,11 @@ class SessionStore(SessionBase):
         if session_data is not None:
             return self.decode(session_data)
         else:
-            self.create()
+            self._session_key = None
             return {}
 
     def exists(self, session_key):
-        return backend.exists(session_key)
+        return session_key and backend.exists(session_key)
 
     def create(self):
         while True:
