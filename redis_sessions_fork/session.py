@@ -9,9 +9,6 @@ class SessionStore(SessionBase):
     '''
     Redis Session Backend For Django
     '''
-    def __init__(self, session_key=None):
-        super(SessionStore, self).__init__(session_key)
-
     def _get_or_create_session_key(self):
         if self._session_key is None:
             self._session_key = self._get_new_session_key()

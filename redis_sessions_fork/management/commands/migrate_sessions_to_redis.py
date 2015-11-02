@@ -4,6 +4,7 @@ from django.contrib.sessions.models import Session
 from django.core.management.base import NoArgsCommand
 
 from ... import backend
+from ...utils import total_seconds
 
 try:  # Django >= 1.4
     from django.utils import timezone
@@ -25,7 +26,7 @@ class Command(NoArgsCommand):
             self.stdout.write('processing %d of %d\n' % (counter, count))
 
             expire_in = session.expire_date - timezone.now()
-            expire_in = expire_in.total_seconds()
+            expire_in = round(total_seconds(expire_in))
 
             if expire_in < 0:
                 continue
