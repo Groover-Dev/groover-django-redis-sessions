@@ -44,7 +44,7 @@ if '__pypy__' not in sys.builtin_module_names:
     install_requires.append('hiredis')
 
 
-if sys.version < (2, 7):
+if sys.version_info[0:2] < (2, 7):
     install_requires.importlib('importlib')
 
 
