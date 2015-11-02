@@ -1,6 +1,29 @@
+import ast
+import os
+import codecs
 import sys
-
 from setuptools import setup
+
+
+class VersionFinder(ast.NodeVisitor):
+    def __init__(self):
+        self.version = None
+
+    def visit_Assign(self, node):  # noqa
+        if node.targets[0].id == '__version__':
+            self.version = node.value.s
+
+
+def read(*parts):
+    filename = os.path.join(os.path.dirname(__file__), *parts)
+    with codecs.open(filename, encoding='utf-8') as fp:
+        return fp.read()
+
+
+def find_version(*parts):
+    finder = VersionFinder()
+    finder.visit(ast.parse(read(*parts)))
+    return finder.version
 
 
 packages = [
@@ -11,21 +34,21 @@ packages = [
 
 
 install_requires = [
-    'redis>=2.4.10',
-    'django>=1.3',
-    'django_appconf>=0.6'
+    'redis',
+    'django',
+    'django_appconf'
 ]
 
 
-if not '__pypy__' in sys.builtin_module_names:
-    install_requires.append('hiredis>=0.1.1')
+if '__pypy__' not in sys.builtin_module_names:
+    install_requires.append('hiredis')
 
 
 setup(
     name='django-redis-sessions-fork',
-    version='0.6.3',
+    version=find_version('redis_sessions_fork', '__init__.py'),
     description='Redis Session Backend For Django',
-    long_description=open('README.rst').read(),
+    long_description=read('README.rst'),
     keywords='django, sessions, redis',
     author='see AUTHORS',
     author_email='hellysmile@gmail.com',

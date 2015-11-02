@@ -1,18 +1,15 @@
+from __future__ import absolute_import, unicode_literals
+
 from functools import wraps
+from importlib import import_module
+
+from .conf import settings
 
 try:  # Python 2.*
     from django.utils.encoding import force_unicode
 except ImportError:  # Python 3.*
     from django.utils.encoding import force_text
     force_unicode = force_text
-try:  # Django >= 1.4
-    from django.utils import timezone
-except ImportError:  # Django < 1.4
-    from datetime import datetime
-    timezone = datetime
-from importlib import import_module
-
-from .conf import settings
 
 
 def add_prefix(key):

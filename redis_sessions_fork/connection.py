@@ -1,7 +1,9 @@
+from __future__ import absolute_import, unicode_literals
+
 import redis
 
-from .utils import import_by_path
 from .conf import settings
+from .utils import import_by_path
 
 
 def get_redis_server():

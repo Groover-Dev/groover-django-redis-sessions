@@ -1,16 +1,21 @@
-from django.core.management.base import NoArgsCommand
-from django.contrib.sessions.models import Session
+from __future__ import absolute_import, unicode_literals
 
-from ... import backend, utils
+from django.contrib.sessions.models import Session
+from django.core.management.base import NoArgsCommand
+
+from ... import backend
+
+try:  # Django >= 1.4
+    from django.utils import timezone
+except ImportError:  # Django < 1.4
+    from datetime import datetime as timezone
 
 
 class Command(NoArgsCommand):
     help = 'copy django orm sessions to redis'
 
     def handle_noargs(self, *args, **kwargs):
-        now = utils.timezone.now()
-
-        sessions = Session.objects.filter(expire_date__gt=now)
+        sessions = Session.objects.filter(expire_date__gt=timezone.now())
         count = sessions.count()
         counter = 1
 
@@ -19,8 +24,11 @@ class Command(NoArgsCommand):
         for session in sessions:
             self.stdout.write('processing %d of %d\n' % (counter, count))
 
-            expire_in = session.expire_date - now
-            expire_in = expire_in.seconds + expire_in.days * 86400
+            expire_in = session.expire_date - timezone.now()
+            expire_in = expire_in.total_seconds()
+
+            if expire_in < 0:
+                continue
 
             backend.delete(session.session_key)
 

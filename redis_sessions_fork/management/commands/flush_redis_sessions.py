@@ -1,9 +1,11 @@
+from __future__ import absolute_import, unicode_literals
+
 from binascii import Error
 
 from django.core.management.base import NoArgsCommand
 
-from ...session import SessionStore
 from ... import backend
+from ...session import SessionStore
 
 
 class Command(NoArgsCommand):

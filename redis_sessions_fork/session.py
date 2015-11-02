@@ -1,4 +1,6 @@
-from django.contrib.sessions.backends.base import SessionBase, CreateError
+from __future__ import absolute_import, unicode_literals
+
+from django.contrib.sessions.backends.base import CreateError, SessionBase
 
 from . import backend
 

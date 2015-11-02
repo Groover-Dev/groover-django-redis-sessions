@@ -1,7 +1,19 @@
-from django.core.management.base import NoArgsCommand
-from django.db.utils import DatabaseError
-from django.db import transaction, connection
+from __future__ import absolute_import, unicode_literals
+
 from django.contrib.sessions.models import Session
+from django.core.management.base import NoArgsCommand
+from django.db import connection, transaction
+from django.db.utils import DatabaseError
+
+if hasattr(transaction, 'atomic'):
+    atomic = transaction.atomic
+else:
+    from contextlib import contextmanager
+
+    @contextmanager
+    def atomic(using=None):
+        yield
+        transaction.commit_unless_managed(using=using)
 
 
 class Command(NoArgsCommand):
@@ -11,16 +23,15 @@ class Command(NoArgsCommand):
         cursor = connection.cursor()
 
         try:  # raw sql truncate
-            cursor.execute(
-                'TRUNCATE TABLE %s' % Session._meta.db_table
-            )
-            if hasattr(transaction, 'commit_unless_managed'):
-                transaction.commit_unless_managed()
+            with atomic():
+                cursor.execute(
+                    'TRUNCATE TABLE %s' % Session._meta.db_table
+                )
         except DatabaseError:  # sqlite fix
-            cursor.execute(
-                'DELETE FROM %s' % Session._meta.db_table
-            )
-            if hasattr(transaction, 'commit_unless_managed'):
-                transaction.commit_unless_managed()
+            with atomic():
+                cursor.execute(
+                    'DELETE FROM %s' % Session._meta.db_table
+                )
         except DatabaseError:  # otherwise via django orm
-            Session.objects.all.delete()
+            with atomic():
+                Session.objects.all.delete()

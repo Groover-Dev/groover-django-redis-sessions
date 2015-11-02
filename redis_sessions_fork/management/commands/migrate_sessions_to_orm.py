@@ -1,11 +1,18 @@
+from __future__ import absolute_import, unicode_literals
+
 import datetime
 from binascii import Error
 
-from django.core.management.base import NoArgsCommand
 from django.contrib.sessions.models import Session
+from django.core.management.base import NoArgsCommand
 
-from ... import utils, backend
+from ... import backend, utils
 from ...session import SessionStore
+
+try:  # Django >= 1.4
+    from django.utils import timezone
+except ImportError:  # Django < 1.4
+    from datetime import datetime as timezone
 
 
 class Command(NoArgsCommand):
@@ -30,9 +37,7 @@ class Command(NoArgsCommand):
                 except (Error, TypeError):
                     continue
 
-                now = utils.timezone.now()
-
-                expire_date = now + datetime.timedelta(
+                expire_date = timezone.now() + datetime.timedelta(
                     seconds=backend.expire(session_key)
                 )
 

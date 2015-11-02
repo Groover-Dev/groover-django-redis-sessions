@@ -1,7 +1,9 @@
+from __future__ import absolute_import, unicode_literals
+
 from django.contrib.sessions.backends.base import CreateError
 
-from .utils import force_unicode, prefix
 from . import connection
+from .utils import force_unicode, prefix
 
 
 @prefix
