@@ -4,13 +4,14 @@ from __future__ import absolute_import, unicode_literals
 import os
 import time
 
+import django
 import redis
 from django.contrib.sessions.backends.base import CreateError
-from django.core import management
 from django.contrib.sessions.models import Session
+from django.core import management
 
-from redis_sessions_fork.conf import settings, SessionRedisConf
-from redis_sessions_fork import utils, backend
+from redis_sessions_fork import backend, utils
+from redis_sessions_fork.conf import SessionRedisConf, settings
 from redis_sessions_fork.connection import get_redis_server
 
 session_module = utils.import_module(settings.SESSION_ENGINE)
@@ -23,8 +24,12 @@ test_connection_pool = redis.ConnectionPool(
     password=settings.SESSION_REDIS_PASSWORD
 )
 
+if django.VERSION >= (1, 9):
+    syncdb = 'migrate'
+else:
+    syncdb = 'syncdb'
 
-management.call_command('syncdb', interactive=False)
+management.call_command(syncdb, interactive=False)
 
 
 class SettingsMock(object):
