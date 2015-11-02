@@ -44,6 +44,10 @@ if '__pypy__' not in sys.builtin_module_names:
     install_requires.append('hiredis')
 
 
+if sys.version < (2, 7):
+    install_requires.importlib('importlib')
+
+
 setup(
     name='django-redis-sessions-fork',
     version=find_version('redis_sessions_fork', '__init__.py'),
