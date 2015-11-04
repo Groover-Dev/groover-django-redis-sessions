@@ -27,9 +27,12 @@ def add_prefix(key):
 
 def remove_prefix(key):
     if settings.SESSION_REDIS_PREFIX:
-        key = str(key).replace(
-            '%s:' % settings.SESSION_REDIS_PREFIX, '', 1
-        )
+        key = str(key)
+
+        if key.startswith(settings.SESSION_REDIS_PREFIX):
+            key = key.replace(
+                '%s:' % settings.SESSION_REDIS_PREFIX, '', 1
+            )
 
     return key
 
